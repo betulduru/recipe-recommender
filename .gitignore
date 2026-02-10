@@ -1,0 +1,10 @@
+# API Key
+config.py
+
+# Python
+__pycache__/
+*.pyc
+
+# Personal files
+favorite_recipes.txt
+test.py
