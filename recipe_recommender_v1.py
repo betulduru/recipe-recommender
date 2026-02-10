@@ -4,7 +4,7 @@
 import requests
 import random
 
-API_KEY = "74beecb80da14ce29b69c0102c0e44ef"  
+from config import API_KEY
 BASE_URL = "https://api.spoonacular.com/recipes/complexSearch"
 
 
