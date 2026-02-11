@@ -15,10 +15,11 @@ def show_menu():
     print("=" * 50)
     print("1. Set preferences")
     print("2. Get recipe recommendations")
-    print("3. View current preferences")
-    print("4. Clear all preferences")
-    print("5. View saved favorites")  
-    print("6. Exit")  
+    print("3. Search recipes by keyword")  
+    print("4. View current preferences")
+    print("5. Clear all preferences")
+    print("6. View saved favorites")
+    print("7. Exit")  
     print("=" * 50)
 
 def get_user_preferences(current_preferences=None):
@@ -171,6 +172,192 @@ def view_preferences(preferences):
     if 'maxReadyTime' in preferences:
         print(f"⏱️  Max time: {preferences['maxReadyTime']} minutes")
 
+def search_recipes_by_keyword(keyword, number=10):
+    """Search recipes by name or keyword"""
+    
+    # Build API parameters
+    params = {
+        'apiKey': API_KEY,
+        'query': keyword,  # The search keyword
+        'number': number,
+        'addRecipeInformation': True,
+        'fillIngredients': True,
+        'addRecipeNutrition': True
+    }
+    
+    try:
+        print(f"\n🔍 Searching for '{keyword}'...")
+        response = requests.get(BASE_URL, params=params)
+        response.raise_for_status()
+        
+        data = response.json()
+        recipes = data.get('results', [])
+        
+        if not recipes:
+            print(f"\n😔 No recipes found for '{keyword}'.")
+            print("Try different keywords!")
+            return
+        
+        print(f"\n🎉 Found {len(recipes)} recipes!")
+        print("\n" + "=" * 50)
+        
+        # Display recipes (same format as get_recipe_recommendations)
+        for i, recipe in enumerate(recipes, 1):
+            print(f"\n{i}. {recipe['title']}")
+            print(f"   ⏱️  Ready in: {recipe.get('readyInMinutes', 'N/A')} minutes")
+            print(f"   👥 Servings: {recipe.get('servings', 'N/A')}")
+            
+            # Calculate difficulty
+            ready_time = recipe.get('readyInMinutes', 0)
+            if ready_time <= 20:
+                difficulty = "Easy"
+            elif ready_time <= 45:
+                difficulty = "Medium"
+            else:
+                difficulty = "Hard"
+            print(f"   🎯 Difficulty: {difficulty}")
+            
+            # Ingredients
+            ingredients_list = recipe.get('extendedIngredients', [])
+            if ingredients_list:
+                print(f"   🛒 Ingredients:")
+                for ingredient in ingredients_list:
+                    amount = ingredient.get('amount', '')
+                    unit = ingredient.get('unit', '')
+                    name = ingredient.get('name', '')
+                    
+                    if amount and unit:
+                        print(f"      • {amount} {unit} {name}")
+                    elif amount:
+                        print(f"      • {amount} {name}")
+                    else:
+                        print(f"      • {name}")
+            
+            # Nutrition
+            nutrition = recipe.get('nutrition', {})
+            if nutrition and 'nutrients' in nutrition:
+                nutrients = nutrition['nutrients']
+                print(f"   📊 Nutrition:")
+                
+                # Always show calories first
+                calories = next((n for n in nutrients if n['name'] == 'Calories'), None)
+                if calories:
+                    print(f"      • Calories: {calories['amount']}{calories['unit']}")
+                
+                # Show other nutrients
+                for nutrient in nutrients[:4]:
+                    if nutrient['name'] != 'Calories':
+                        print(f"      • {nutrient['name']}: {nutrient['amount']}{nutrient['unit']}")
+            
+            print(f"   🔗 View recipe: {recipe.get('sourceUrl', 'N/A')}")
+            print("   " + "-" * 45)
+        
+        # Ask if user wants to save any
+        save_choice = input("\n💾 Want to save any recipe? Enter number (or press Enter to skip): ").strip()
+        if save_choice.isdigit():
+            recipe_num = int(save_choice)
+            if 1 <= recipe_num <= len(recipes):
+                save_favorite_recipe(recipes[recipe_num - 1])
+            else:
+                print("❌ Invalid recipe number")
+        
+    except requests.exceptions.RequestException as e:
+        print(f"\n❌ Error searching recipes: {e}")
+
+
+def search_recipes_by_keyword(keyword, number=10):
+    """Search recipes by name or keyword"""
+    
+    # Build API parameters
+    params = {
+        'apiKey': API_KEY,
+        'query': keyword,  # The search keyword
+        'number': number,
+        'addRecipeInformation': True,
+        'fillIngredients': True,
+        'addRecipeNutrition': True
+    }
+    
+    try:
+        print(f"\n🔍 Searching for '{keyword}'...")
+        response = requests.get(BASE_URL, params=params)
+        response.raise_for_status()
+        
+        data = response.json()
+        recipes = data.get('results', [])
+        
+        if not recipes:
+            print(f"\n😔 No recipes found for '{keyword}'.")
+            print("Try different keywords!")
+            return
+        
+        print(f"\n🎉 Found {len(recipes)} recipes!")
+        print("\n" + "=" * 50)
+        
+        # Display recipes (same format as get_recipe_recommendations)
+        for i, recipe in enumerate(recipes, 1):
+            print(f"\n{i}. {recipe['title']}")
+            print(f"   ⏱️  Ready in: {recipe.get('readyInMinutes', 'N/A')} minutes")
+            print(f"   👥 Servings: {recipe.get('servings', 'N/A')}")
+            
+            # Calculate difficulty
+            ready_time = recipe.get('readyInMinutes', 0)
+            if ready_time <= 20:
+                difficulty = "Easy"
+            elif ready_time <= 45:
+                difficulty = "Medium"
+            else:
+                difficulty = "Hard"
+            print(f"   🎯 Difficulty: {difficulty}")
+            
+            # Ingredients
+            ingredients_list = recipe.get('extendedIngredients', [])
+            if ingredients_list:
+                print(f"   🛒 Ingredients:")
+                for ingredient in ingredients_list:
+                    amount = ingredient.get('amount', '')
+                    unit = ingredient.get('unit', '')
+                    name = ingredient.get('name', '')
+                    
+                    if amount and unit:
+                        print(f"      • {amount} {unit} {name}")
+                    elif amount:
+                        print(f"      • {amount} {name}")
+                    else:
+                        print(f"      • {name}")
+            
+            # Nutrition
+            nutrition = recipe.get('nutrition', {})
+            if nutrition and 'nutrients' in nutrition:
+                nutrients = nutrition['nutrients']
+                print(f"   📊 Nutrition:")
+                
+                # Always show calories first
+                calories = next((n for n in nutrients if n['name'] == 'Calories'), None)
+                if calories:
+                    print(f"      • Calories: {calories['amount']}{calories['unit']}")
+                
+                # Show other nutrients
+                for nutrient in nutrients[:4]:
+                    if nutrient['name'] != 'Calories':
+                        print(f"      • {nutrient['name']}: {nutrient['amount']}{nutrient['unit']}")
+            
+            print(f"   🔗 View recipe: {recipe.get('sourceUrl', 'N/A')}")
+            print("   " + "-" * 45)
+        
+        # Ask if user wants to save any
+        save_choice = input("\n💾 Want to save any recipe? Enter number (or press Enter to skip): ").strip()
+        if save_choice.isdigit():
+            recipe_num = int(save_choice)
+            if 1 <= recipe_num <= len(recipes):
+                save_favorite_recipe(recipes[recipe_num - 1])
+            else:
+                print("❌ Invalid recipe number")
+        
+    except requests.exceptions.RequestException as e:
+        print(f"\n❌ Error searching recipes: {e}")
+
+
 
 def get_recipe_recommendations(preferences, number=10):
     """Fetch recipes from Spoonacular API based on preferences"""
@@ -322,28 +509,34 @@ def main():
         choice = input("\nEnter your choice (1-5): ").strip()
         
         if choice == "1":
-            user_preferences = get_user_preferences(user_preferences)   
+            user_preferences = get_user_preferences(user_preferences)
         
         elif choice == "2":
             get_recipe_recommendations(user_preferences)
         
-        elif choice == "3":
+        elif choice == "3":  
+            keyword = input("\n🔍 Enter keyword or recipe name: ").strip()
+            if keyword:
+                search_recipes_by_keyword(keyword)
+            else:
+                print("❌ Please enter a keyword")
+        
+        elif choice == "4":  
             view_preferences(user_preferences)
         
-        elif choice == "4":
+        elif choice == "5":  
             user_preferences = {}
             print("\n✓ All preferences cleared!")
         
-        elif choice == "5":  # NEW
+        elif choice == "6":  
             view_saved_favorites()
         
-        elif choice == "6":  # Changed from 5
+        elif choice == "7": 
             print("\n👋 Happy cooking! Goodbye!")
             break
         
         else:
             print("\n❌ Invalid choice. Please try again.")
-
 
 if __name__ == "__main__":
     main()
